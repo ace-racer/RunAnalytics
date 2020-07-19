@@ -1,57 +1,42 @@
 import pandas as pd
 import numpy as np
+import os
 import matplotlib.pyplot as plt
 from typing import List
 from datetime import datetime, timedelta
+from user_stats import UserStats
 
 import streamlit as st
 import pydeck as pdk
 
+# Set values for the below
+RUNKEEPER_DATA_LOC = "../runkeeper_data/"
+
 st.title("Runkeeper analysis")
 
-column_names = ["run_id", "start_lon", "start_lat", "end_lon", "end_lat", "distance_km", "average_speed_kmph", "time_taken_min"]
-runs_df = pd.DataFrame(columns=column_names)
-print(runs_df)
+users_file_location = os.path.join(RUNKEEPER_DATA_LOC, "users.csv")
+users_df = pd.read_csv(users_file_location)
 
-def display_runs_across_singapore(runs_df : pd.DataFrame):
-    processed_runs_df = runs_df.rename(columns = {'start_lon':'lon', 'start_lat':'lat'})
+user_display_names = users_df["display_name"].values
 
-    # Any value with NA leads to a strange error on the UI
-    # No value that are in the DF must not be empty for the map to work
-    processed_runs_df = processed_runs_df[["lat", "lon"]]
-    midpoint = 1.38, 103.8
+def display_stats_for_selected_user(user_display_name: str):
+    user_stats_file_name = users_df[users_df["display_name"] == user_display_name]["file_name"].values[0]
+    print(user_stats_file_name)
+    user_stats_file_location = os.path.join(RUNKEEPER_DATA_LOC, user_stats_file_name)
+    user_stats = UserStats(user_stats_file_location)
+    st.text(user_stats.median_speed_for_user)
+    st.text(user_stats.median_duration_for_user)
+    st.text(user_stats.median_distance_for_user)
 
-    st.write(pdk.Deck(
-        map_style="mapbox://styles/mapbox/light-v9",
-        initial_view_state={
-            "latitude": midpoint[0],
-            "longitude": midpoint[1],
-            "zoom": 11,
-            "pitch": 50,
-        },
-        layers=[	
-            pdk.Layer(	
-                "HexagonLayer",	
-                data=processed_runs_df,
-                get_position=["lon", "lat"],
-                radius=100,
-                elevation_scale=4,
-                elevation_range=[0, 1000],
-                pickable=True,
-                extruded=True
-            ),	
-        ]   
-    ))
+    df_grouped_stats_by_day_type = user_stats.get_grouped_user_stats_by_day_type()
+    df_grouped_stats_by_start_hour = user_stats.get_grouped_user_stats_by_start_hour()
+    st.dataframe(df_grouped_stats_by_day_type)
+    st.dataframe(df_grouped_stats_by_start_hour)
+
+    df_filtered_user = user_stats.filtered_by_minimum_duration_user_df
+    st.line_chart(df_filtered_user["Distance (km)"])
+
+display_stats_for_selected_user("p1")
 
 
-def display_runs_metrics_compared_to_others():
-    pass
 
-
-def get_potential_distance_based_on_current_runs():
-    pass
-
-def get_probable_time_required_to_reach_distance_goal(distance_goal:int) -> int:
-    pass
-
-display_runs_across_singapore(runs_df)
