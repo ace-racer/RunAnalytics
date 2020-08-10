@@ -28,11 +28,15 @@ def display_stats_across_teams():
 def display_stats_for_selected_user(user_display_name: str):
     user_stats_file_name = users_df[users_df["display_name"] == user_display_name]["file_name"].values[0]
     print(user_stats_file_name)
+    
+    user_team_name = users_df[users_df["display_name"] == user_display_name]["team"].values[0]
+    st.markdown("### User name: " + user_display_name)
+    st.markdown("### Team: " + user_team_name)
+    
     user_stats_file_location = os.path.join(RUNKEEPER_DATA_LOC, user_stats_file_name)
     
     user_stats = UserStats(user_stats_file_location)
     
-
     st.markdown("#### Duration: {0} to {1}".format(user_stats.first_latest_run_for_user[0], user_stats.first_latest_run_for_user[1]))
     st.text("Number of runs: " + str(user_stats.total_valid_runs_for_user))
     st.text("Median speed (Km/h): " + str(user_stats.median_speed_for_user))
@@ -46,7 +50,12 @@ def display_stats_for_selected_user(user_display_name: str):
     st.dataframe(df_grouped_stats_by_start_hour)
 
     df_filtered_user = user_stats.filtered_by_minimum_duration_user_df
+    
+    st.text("Distance covered across runs")
     st.line_chart(df_filtered_user["Distance (km)"])
+    
+    st.text("Average speed across runs")
+    st.line_chart(df_filtered_user["Average Speed (km/h)"])
 
 st.title("Details across teams")
 display_stats_across_teams()
