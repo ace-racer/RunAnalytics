@@ -19,7 +19,12 @@ class TeamStats:
 
     @property
     def median_values_across_teams(self) -> pd.DataFrame:
-        pass
+        grouped_df = self.all_user_details_stats.groupby("team")[["median_speed", "median_distance", "median_duration"]].median()
+        grouped_df = grouped_df.reset_index()
+        grouped_df["median_duration"] = grouped_df["median_duration"].apply(utils.get_duration_in_hh_mm_ss)
+        grouped_df.columns = ["team", "Median speed (Km/h)", "Median distance (Km)", "Median Duration (HH:mm:ss)"]
+        return grouped_df
+
 
     @property
     def team_names(self) -> List[str]:
@@ -27,12 +32,25 @@ class TeamStats:
 
     def __init__(self, user_details_file_location: str, base_location: str):
         self.user_details_df = self._get_user_details_from_file(user_details_file_location)
-        self.all_user_stats = []
+        dfs = []
+        
         for itr, row in self.user_details_df.iterrows():
             user_file_name = row["file_name"]
             user_file_location = os.path.join(base_location, user_file_name)
             user_stats = UserStats(user_file_location)
-            self.all_user_stats.append(user_stats)
+            
+            user_details_stats = {
+                "display_name": row["display_name"],
+                "team": row["team"],
+                "median_speed": user_stats.median_speed_for_user,
+                "median_distance": user_stats.median_distance_for_user,
+                "median_duration": utils.get_duration_in_sec(user_stats.median_duration_for_user)
+            }
+
+            current_user_details_stats_df = pd.DataFrame(user_details_stats, index=[0])
+            dfs.append(current_user_details_stats_df)
+        
+        self.all_user_details_stats = pd.concat(dfs)
 
 
 

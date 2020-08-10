@@ -1,6 +1,6 @@
 import pandas as pd
 
-def get_duration_in_sec(self, duration):
+def get_duration_in_sec(duration):
     duration_str = str(duration)
     duration_parts = duration.split(":")
     num_parts = len(duration_parts)
@@ -15,7 +15,7 @@ def get_duration_in_sec(self, duration):
     return total_secs
 
 
-def get_duration_in_hh_mm_ss(self, duration_in_sec: float) -> str:
+def get_duration_in_hh_mm_ss(duration_in_sec: float) -> str:
     duration_in_sec= int(duration_in_sec)
     final_duration = ""
     seconds = duration_in_sec % 60
@@ -29,7 +29,7 @@ def get_duration_in_hh_mm_ss(self, duration_in_sec: float) -> str:
         
     return final_duration
 
-def get_minimum_based_on_box_plot(self, df: pd.DataFrame, field_name: str) -> float:
+def get_minimum_based_on_box_plot(df: pd.DataFrame, field_name: str) -> float:
     Q1 = df[field_name].quantile(0.25)
     Q3 = df[field_name].quantile(0.75)
     IQR = Q3 - Q1

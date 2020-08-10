@@ -73,7 +73,7 @@ class UserStats:
 
     @property
     def median_duration_for_user(self) -> str:
-        return self._get_duration_in_hh_mm_ss(self.user_df["duration_sec"].median())
+        return utils.get_duration_in_hh_mm_ss(self.user_df["duration_sec"].median())
 
     @property
     def median_distance_for_user(self) -> float:
