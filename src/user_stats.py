@@ -93,6 +93,13 @@ class UserStats:
         latest = str(self.user_df.index.max().strftime("%Y-%m-%d"))
         return (first, latest)
 
+    def get_most_productive_day(self, metric="distance") -> str:
+        return ""
+
+    def get_most_productive_hour(self, grouped_user_stats_start_hour_df: pd.DataFrame, metric="distance") -> str:
+        most_productive_hour = grouped_user_stats_start_hour_df.loc[grouped_user_stats_start_hour_df[("Distance (km)", "median")].idxmax()]["hour"]
+        return str(most_productive_hour)
+
     def __init__(self, user_stats_file_location: str):
         self.user_df = self._get_user_stats_from_file(user_stats_file_location)
         self.minimum_duration = utils.get_minimum_based_on_box_plot(self.user_df, "duration_sec")
