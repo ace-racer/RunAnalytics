@@ -83,6 +83,16 @@ class UserStats:
     def filtered_by_minimum_duration_user_df(self) -> pd.DataFrame:
         return self.filtered_user_df
 
+    @property
+    def total_valid_runs_for_user(self) -> int:
+        return self.user_df.shape[0]
+
+    @property
+    def first_latest_run_for_user(self) -> (str, str):
+        first = str(self.user_df.index.min().strftime("%Y-%m-%d"))
+        latest = str(self.user_df.index.max().strftime("%Y-%m-%d"))
+        return (first, latest)
+
     def __init__(self, user_stats_file_location: str):
         self.user_df = self._get_user_stats_from_file(user_stats_file_location)
         self.minimum_duration = utils.get_minimum_based_on_box_plot(self.user_df, "duration_sec")
