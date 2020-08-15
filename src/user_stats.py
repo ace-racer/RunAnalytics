@@ -30,20 +30,22 @@ class UserStats:
         else:
             raise ValueError("The file at location {0} does not exist".format(user_stats_file_name))
 
-    def get_grouped_user_stats_by_day_type(self) -> pd.DataFrame:
-        df_grouped_is_weekend = self.filtered_user_df.groupby("day_type")[["Distance (km)", "duration_sec", "Average Speed (km/h)", "Climb (m)"]].agg({"Distance (km)": ["median", "sum", "max"], "duration_sec": ["median", "sum", "max"], "Average Speed (km/h)": ["median", "max"], "Climb (m)": ["median", "max"]})
-        df_grouped_is_weekend = df_grouped_is_weekend.reset_index()
+    def get_grouped_user_stats_by_day_of_week(self) -> pd.DataFrame:
+        df_grouped_day_of_week = self.filtered_user_df\
+        .groupby("day_of_week")[["Distance (km)", "duration_sec", "Average Speed (km/h)", "Climb (m)"]]\
+        .agg({"Distance (km)": ["median", "sum", "max"], "duration_sec": ["median", "sum", "max"], "Average Speed (km/h)": ["median", "max"], "Climb (m)": ["median", "max"]})
+        df_grouped_day_of_week = df_grouped_day_of_week.reset_index()
 
-        df_grouped_is_weekend[("Duration(HH:MM:SS)", "median")] =  df_grouped_is_weekend[("duration_sec", "median")].apply(utils.get_duration_in_hh_mm_ss)
-        df_grouped_is_weekend[("Duration(HH:MM:SS)", "max")] =  df_grouped_is_weekend[("duration_sec", "max")].apply(utils.get_duration_in_hh_mm_ss)
-        df_grouped_is_weekend[("Duration(HH:MM:SS)", "total")] =  df_grouped_is_weekend[("duration_sec", "sum")].apply(utils.get_duration_in_hh_mm_ss)
+        df_grouped_day_of_week[("Duration(HH:MM:SS)", "median")] =  df_grouped_day_of_week[("duration_sec", "median")].apply(utils.get_duration_in_hh_mm_ss)
+        df_grouped_day_of_week[("Duration(HH:MM:SS)", "max")] =  df_grouped_day_of_week[("duration_sec", "max")].apply(utils.get_duration_in_hh_mm_ss)
+        df_grouped_day_of_week[("Duration(HH:MM:SS)", "total")] =  df_grouped_day_of_week[("duration_sec", "sum")].apply(utils.get_duration_in_hh_mm_ss)
 
 
-        df_grouped_is_weekend = df_grouped_is_weekend.drop(columns=[("duration_sec", "median"), ("duration_sec", "max"), ("duration_sec", "sum")])
-        df_grouped_is_weekend_count = self.filtered_user_df.groupby("day_type").size().reset_index()
-        df_grouped_is_weekend_count.columns = ['day_type', 'num_runs']
+        df_grouped_day_of_week = df_grouped_day_of_week.drop(columns=[("duration_sec", "median"), ("duration_sec", "max"), ("duration_sec", "sum")])
+        df_grouped_day_of_week_count = self.filtered_user_df.groupby("day_of_week").size().reset_index()
+        df_grouped_day_of_week_count.columns = ['day_of_week', 'num_runs']
 
-        result_df = df_grouped_is_weekend.merge(df_grouped_is_weekend_count, on='day_type')
+        result_df = df_grouped_day_of_week.merge(df_grouped_day_of_week_count, on='day_of_week')
         return result_df
 
 
@@ -93,12 +95,16 @@ class UserStats:
         latest = str(self.user_df.index.max().strftime("%Y-%m-%d"))
         return (first, latest)
 
-    def get_most_productive_day(self, metric="distance") -> str:
-        return ""
+    def get_most_productive_day(self, grouped_stats_by_day_of_week_df: pd.DataFrame, metric="distance") -> str:
+        most_productive_day_of_week = grouped_stats_by_day_of_week_df.loc[grouped_stats_by_day_of_week_df[("Distance (km)", "median")].idxmax()][[("Distance (km)", "median"), "day_of_week"]]
+        formatted_day_of_week = utils.format_day_of_week(most_productive_day_of_week["day_of_week"])
+        
+        return {"metric": metric, "achieved_at": formatted_day_of_week, "metric_value": most_productive_day_of_week[("Distance (km)", "median")]}
 
     def get_most_productive_hour(self, grouped_user_stats_start_hour_df: pd.DataFrame, metric="distance") -> str:
-        most_productive_hour = grouped_user_stats_start_hour_df.loc[grouped_user_stats_start_hour_df[("Distance (km)", "median")].idxmax()]["hour"]
-        return str(most_productive_hour)
+        most_productive_hour = grouped_user_stats_start_hour_df.loc[grouped_user_stats_start_hour_df[("Distance (km)", "median")].idxmax()][[("Distance (km)", "median"), "hour"]]
+        formatted_hour_of_day = utils.format_hour_of_day(most_productive_hour["hour"])
+        return {"metric": metric, "achieved_at": formatted_hour_of_day, "metric_value": most_productive_hour[("Distance (km)", "median")]}
 
     def __init__(self, user_stats_file_location: str):
         self.user_df = self._get_user_stats_from_file(user_stats_file_location)

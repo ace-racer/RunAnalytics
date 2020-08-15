@@ -44,16 +44,21 @@ def display_stats_for_selected_user(user_display_name: str):
     st.text("Median distance (Km): " + str(user_stats.median_distance_for_user))
     
     # Get the most productive day and start hour based on duration of the run
-    df_grouped_stats_by_day_type = user_stats.get_grouped_user_stats_by_day_type()
+    df_grouped_stats_by_day_of_week = user_stats.get_grouped_user_stats_by_day_of_week()
     df_grouped_stats_by_start_hour = user_stats.get_grouped_user_stats_by_start_hour()
     
-    # TODO: Get the most productive day
-    # st.text("Most productive day: " + user_stats.get_most_productive_day())
+    # Get the most productive day of week
+    most_productive_day_metrics = user_stats.get_most_productive_day(df_grouped_stats_by_day_of_week)
+    st.text("Most productive day in the week: {0} for metric: {1} with metric value: {2}"\
+            .format(most_productive_day_metrics["achieved_at"], most_productive_day_metrics["metric"], most_productive_day_metrics["metric_value"]))
     
-    st.text("Most productive hour: " + user_stats.get_most_productive_hour(df_grouped_stats_by_start_hour))
+    # Get the most productive hour of day
+    most_productive_hour_metrics = user_stats.get_most_productive_hour(df_grouped_stats_by_start_hour)
+    st.text("Most productive hour of the day: {0} for metric: {1} with metric value: {2}"\
+            .format(most_productive_hour_metrics["achieved_at"], most_productive_hour_metrics["metric"], most_productive_hour_metrics["metric_value"]))
     
-    # st.dataframe(df_grouped_stats_by_day_type)
-    # st.dataframe(df_grouped_stats_by_start_hour)
+    st.dataframe(df_grouped_stats_by_day_of_week)
+    st.dataframe(df_grouped_stats_by_start_hour)
 
     df_filtered_user = user_stats.filtered_by_minimum_duration_user_df
     

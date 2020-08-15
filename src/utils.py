@@ -40,3 +40,19 @@ def get_minimum_based_on_box_plot(df: pd.DataFrame, field_name: str) -> float:
     print(min_value)
     
     return min_value
+
+def format_hour_of_day(hour_of_day: int) -> str:
+    if hour_of_day >= 0 and hour_of_day <= 23:
+        if hour_of_day >=0 and hour_of_day <= 11:
+            return str(hour_of_day) + " AM"
+        else:
+            return str(hour_of_day) + " PM"
+
+    raise ValueError("The hour of day: {0} is outside of the acceptable range".format(hour_of_day))
+
+def format_day_of_week(day_of_week: int) -> str:
+    if day_of_week >=0 and day_of_week <= 6:
+        days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+        return days[day_of_week]
+    
+    raise ValueError("The day of week: {0} is outside of the acceptable range".format(day_of_week))
